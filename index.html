@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ita · Now Playing</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =================================================================
+   Lelouch Music Card · ita
+   Paleta del banner: negro profundo + dorado bizantino + blancos
+   pluma + sangre vampírica + alas etéreas
+   ================================================================= */
+
+:root {
+  --bg-deep: #06050a;
+  --bg-mid: #11101a;
+  --bg-card: #14131d;
+  --gold: #c9a866;
+  --gold-bright: #e8c878;
+  --gold-deep: #8a7340;
+  --crimson: #8b2c3a;
+  --crimson-bright: #c43d50;
+  --ivory: #f5ecdc;
+  --white-soft: rgba(245, 236, 220, 0.88);
+  --text-dim: rgba(245, 236, 220, 0.55);
+  --text-muted: rgba(245, 236, 220, 0.35);
+  --border-gold: rgba(201, 168, 102, 0.32);
+  --border-faint: rgba(201, 168, 102, 0.14);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-deep);
+  color: var(--white-soft);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* === FONDO ANIMADO: plumas flotando === */
+.bg-layer {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(201, 168, 102, 0.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(139, 44, 58, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 50%, var(--bg-deep) 100%);
+}
+
+.feathers {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
+}
+
+.feather {
+  position: absolute;
+  width: 14px; height: 28px;
+  background: linear-gradient(180deg, transparent 0%, rgba(245, 236, 220, 0.55) 35%, rgba(245, 236, 220, 0.85) 70%, transparent 100%);
+  border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%;
+  filter: blur(0.4px);
+  opacity: 0;
+  animation: fall linear infinite;
+  transform-origin: center;
+}
+
+@keyframes fall {
+  0% { transform: translateY(-50px) translateX(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.85; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(110vh) translateX(var(--drift, 80px)) rotate(720deg); opacity: 0; }
+}
+
+/* === CONTENEDOR PRINCIPAL === */
+.wrap {
+  position: relative; z-index: 10;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 48px 20px 60px;
+}
+
+/* === HEADER DE LA CARD === */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(201, 168, 102, 0.08),
+    0 25px 60px -15px rgba(0, 0, 0, 0.7),
+    0 0 80px -20px rgba(201, 168, 102, 0.18);
+  position: relative;
+}
+
+/* sutil resplandor dorado en el borde */
+.card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(201, 168, 102, 0.05) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+.banner-wrap {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+}
+
+.banner {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: contrast(1.05) saturate(0.92);
+}
+
+.banner-vignette {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, transparent 0%, transparent 50%, rgba(20, 19, 29, 0.85) 90%, var(--bg-card) 100%),
+    radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.45) 100%);
+  pointer-events: none;
+}
+
+/* === VIEWS COUNTER === */
+.views {
+  position: absolute;
+  top: 16px; right: 18px;
+  background: rgba(6, 5, 10, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-gold);
+  border-radius: 18px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gold-bright);
+  display: flex; align-items: center; gap: 6px;
+  letter-spacing: 0.5px;
+}
+
+.views svg { width: 14px; height: 14px; opacity: 0.9; }
+
+/* === AVATAR === */
+.avatar-wrap {
+  position: relative;
+  width: 130px; height: 130px;
+  margin: -75px auto 0;
+  z-index: 2;
+}
+
+.avatar-decoration {
+  position: absolute; inset: -10px;
+  pointer-events: none;
+}
+
+.avatar {
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--gold);
+  box-shadow:
+    0 0 0 4px var(--bg-card),
+    0 0 30px rgba(201, 168, 102, 0.45),
+    0 0 60px rgba(201, 168, 102, 0.2);
+  display: block;
+  position: relative; z-index: 2;
+}
+
+.avatar-decoration svg {
+  position: absolute; inset: -8px;
+  width: calc(100% + 16px); height: calc(100% + 16px);
+}
+
+/* === NOMBRE Y BIO === */
+.identity {
+  text-align: center;
+  padding: 20px 30px 0;
+}
+
+.nickname {
+  font-family: 'Cinzel', serif;
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: 8px;
+  color: var(--ivory);
+  text-shadow: 0 0 25px rgba(201, 168, 102, 0.35), 0 2px 4px rgba(0,0,0,0.6);
+  margin-bottom: 12px;
+  position: relative;
+  display: inline-block;
+}
+
+.nickname::before, .nickname::after {
+  content: '✦';
+  font-size: 14px;
+  color: var(--gold);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.7;
+}
+
+.nickname::before { left: -28px; }
+.nickname::after { right: -28px; }
+
+.bio {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-dim);
+  line-height: 1.55;
+  padding: 0 24px;
+  margin-bottom: 6px;
+}
+
+.bio strong {
+  color: var(--gold);
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.5px;
+}
+
+/* === SOCIALS === */
+.socials {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 30px 6px;
+  flex-wrap: wrap;
+}
+
+.social {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--bg-mid);
+  border: 1px solid var(--border-gold);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--white-soft);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.social svg { width: 18px; height: 18px; }
+
+.social:hover {
+  background: var(--gold-deep);
+  border-color: var(--gold-bright);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(201, 168, 102, 0.4);
+}
+
+/* tooltip */
+.social::after {
+  content: attr(data-name);
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(6, 5, 10, 0.92);
+  border: 1px solid var(--border-gold);
+  color: var(--gold-bright);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.social:hover::after { opacity: 1; }
+
+/* === DIVIDER === */
+.divider {
+  display: flex;
+  align-items: center;
+  padding: 20px 30px 4px;
+  gap: 12px;
+}
+
+.divider .line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+}
+
+.divider .ornament {
+  color: var(--gold);
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* === REPRODUCTOR === */
+.player {
+  padding: 16px 30px 30px;
+}
+
+.now-playing {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.now-cover {
+  width: 64px; height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-gold);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.now-cover img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.now-cover.spinning img {
+  animation: spin 20s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.now-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.now-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ivory);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.3px;
+}
+
+.now-artist {
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* === BARRA DE PROGRESO === */
+.progress-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(245, 236, 220, 0.1);
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: visible;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-bright) 100%);
+  border-radius: 2px;
+  width: 0%;
+  position: relative;
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(201, 168, 102, 0.5);
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -6px; top: 50%;
+  transform: translateY(-50%);
+  width: 12px; height: 12px;
+  background: var(--gold-bright);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow: 0 0 8px rgba(232, 200, 120, 0.7);
+}
+
+.progress-bar:hover .progress-fill::after { opacity: 1; }
+
+.time {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  min-width: 38px;
+}
+
+.time.right { text-align: right; }
+
+/* === CONTROLES === */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding-top: 4px;
+}
+
+.ctrl {
+  background: transparent;
+  border: none;
+  color: var(--white-soft);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+.ctrl:hover { color: var(--gold-bright); transform: scale(1.1); }
+
+.ctrl svg { width: 22px; height: 22px; }
+
+.ctrl.play {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-deep) 100%);
+  color: var(--bg-deep);
+  width: 56px; height: 56px;
+  box-shadow: 0 4px 18px rgba(201, 168, 102, 0.4), inset 0 0 0 1px var(--gold-bright);
+}
+
+.ctrl.play:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(201, 168, 102, 0.55), inset 0 0 0 1px var(--gold-bright);
+}
+
+.ctrl.play svg { width: 28px; height: 28px; }
+
+.ctrl.volume { margin-left: auto; }
+
+.volume-wrap {
+  display: flex; align-items: center; gap: 8px;
+}
+
+input[type="range"].vol {
+  -webkit-appearance: none;
+  width: 70px;
+  height: 3px;
+  background: rgba(245, 236, 220, 0.15);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"].vol::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 11px; height: 11px;
+  background: var(--gold-bright);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(232, 200, 120, 0.7);
+}
+
+input[type="range"].vol::-moz-range-thumb {
+  width: 11px; height: 11px;
+  background: var(--gold-bright);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+/* === PLAYLIST === */
+.playlist-section {
+  border-top: 1px solid var(--border-faint);
+  padding: 20px 30px 28px;
+}
+
+.playlist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.playlist-title {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.shuffle-btn {
+  background: transparent;
+  border: 1px solid var(--border-gold);
+  color: var(--gold);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.shuffle-btn:hover, .shuffle-btn.active {
+  background: var(--gold-deep);
+  color: var(--ivory);
+  border-color: var(--gold);
+}
+
+.playlist {
+  list-style: none;
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-deep) transparent;
+}
+
+.playlist::-webkit-scrollbar { width: 5px; }
+.playlist::-webkit-scrollbar-track { background: transparent; }
+.playlist::-webkit-scrollbar-thumb { background: var(--gold-deep); border-radius: 3px; }
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 4px;
+}
+
+.track:hover { background: rgba(201, 168, 102, 0.07); }
+
+.track.active {
+  background: rgba(201, 168, 102, 0.12);
+  border-left: 2px solid var(--gold);
+  padding-left: 6px;
+}
+
+.track-cover {
+  width: 40px; height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--border-faint);
+}
+
+.track-cover img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.track-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.track-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ivory);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track.active .track-name {
+  color: var(--gold-bright);
+}
+
+.track-artist {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.3px;
+}
+
+.track-duration {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* indicador de "playing" en la track activa */
+.track.active .track-cover {
+  border-color: var(--gold);
+  box-shadow: 0 0 8px rgba(201, 168, 102, 0.4);
+}
+
+.eq-bars {
+  display: none;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  margin-left: 4px;
+}
+
+.track.active.playing .eq-bars { display: flex; }
+
+.eq-bars span {
+  width: 3px;
+  background: var(--gold-bright);
+  border-radius: 1px;
+  animation: eq 0.9s ease-in-out infinite;
+}
+
+.eq-bars span:nth-child(1) { animation-delay: 0s; }
+.eq-bars span:nth-child(2) { animation-delay: 0.2s; }
+.eq-bars span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes eq {
+  0%, 100% { height: 3px; }
+  50% { height: 14px; }
+}
+
+/* === QUOTE FINAL (Lelouch · Nunnally) === */
+.quote-section {
+  text-align: center;
+  padding: 26px 36px 8px;
+  position: relative;
+}
+
+.quote-section::before,
+.quote-section::after {
+  content: '';
+  display: block;
+  margin: 0 auto;
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin-bottom: 16px;
+}
+
+.quote-section::after { margin-top: 16px; margin-bottom: 0; }
+
+.quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--white-soft);
+  letter-spacing: 0.3px;
+}
+
+.quote .accent {
+  color: var(--gold-bright);
+  font-weight: 600;
+  font-style: normal;
+}
+
+.quote-attrib {
+  display: block;
+  margin-top: 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+/* === FOOTER === */
+.footer {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+}
+
+.footer .heart { color: var(--crimson-bright); }
+
+/* === LINK CRUZADO A LA OTRA CARD === */
+.cross-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 6px 30px 26px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(196, 61, 82, 0.12) 0%, rgba(201, 168, 102, 0.06) 100%);
+  border: 1px solid var(--border-gold);
+  border-radius: 14px;
+  color: var(--cream-soft, var(--ivory));
+  text-decoration: none;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cross-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(196, 61, 82, 0.06) 0%, rgba(201, 168, 102, 0.12) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cross-link:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -8px rgba(196, 61, 82, 0.4), 0 0 0 1px rgba(201, 168, 102, 0.25);
+}
+
+.cross-link:hover::before { opacity: 1; }
+.cross-link:hover .cross-arrow { transform: translateX(4px); color: var(--gold-bright); }
+.cross-link:hover .cross-icon { transform: scale(1.1) rotate(-8deg); }
+
+.cross-icon {
+  width: 38px; height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(196, 61, 82, 0.18);
+  border: 1px solid rgba(196, 61, 82, 0.4);
+  display: flex; align-items: center; justify-content: center;
+  color: #d04b5e;
+  transition: transform 0.3s ease;
+  position: relative; z-index: 1;
+}
+
+.cross-icon svg { width: 18px; height: 18px; }
+
+.cross-text {
+  flex: 1;
+  display: flex; flex-direction: column;
+  position: relative; z-index: 1;
+  min-width: 0;
+}
+
+.cross-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 2px;
+  opacity: 0.9;
+}
+
+.cross-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-style: italic;
+  color: var(--ivory);
+  letter-spacing: 0.5px;
+}
+
+.cross-arrow {
+  width: 18px; height: 18px;
+  color: var(--gold);
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+  position: relative; z-index: 1;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 480px) {
+  .wrap { padding: 24px 12px 40px; }
+  .nickname { font-size: 30px; letter-spacing: 5px; }
+  .nickname::before, .nickname::after { display: none; }
+  .banner-wrap { height: 170px; }
+  .avatar-wrap, .avatar { width: 110px; height: 110px; }
+  .avatar-wrap { margin-top: -60px; }
+  .player, .playlist-section, .quote-section { padding-left: 18px; padding-right: 18px; }
+  .cross-link { margin-left: 18px; margin-right: 18px; padding: 12px 14px; }
+  .cross-name { font-size: 16px; }
+  .socials { padding: 20px 18px 6px; gap: 8px; }
+  .social { width: 38px; height: 38px; }
+  .now-title { font-size: 17px; }
+  .volume-wrap { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Fondo animado -->
+<div class="bg-layer"></div>
+<div class="feathers" id="feathers"></div>
+
+<div class="wrap">
+
+  <div class="card">
+
+    <!-- Banner -->
+    <div class="banner-wrap">
+      <img src="images/banner.jpg" alt="Banner" class="banner">
+      <div class="banner-vignette"></div>
+
+      <!-- Views counter -->
+      <div class="views" title="Visitas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span id="viewCount">0</span>
+      </div>
+    </div>
+
+    <!-- Avatar con decoración -->
+    <div class="avatar-wrap">
+      <div class="avatar-decoration">
+        <svg viewBox="0 0 160 160">
+          <!-- Anillo gótico decorativo alrededor del avatar -->
+          <circle cx="80" cy="80" r="74" fill="none" stroke="#c9a866" stroke-width="0.7" opacity="0.5"/>
+          <circle cx="80" cy="80" r="78" fill="none" stroke="#c9a866" stroke-width="0.3" opacity="0.3"/>
+          <!-- 8 rayos sutiles -->
+          <g stroke="#c9a866" stroke-width="0.6" opacity="0.5">
+            <line x1="80" y1="0" x2="80" y2="6"/>
+            <line x1="80" y1="154" x2="80" y2="160"/>
+            <line x1="0" y1="80" x2="6" y2="80"/>
+            <line x1="154" y1="80" x2="160" y2="80"/>
+            <line x1="23" y1="23" x2="27" y2="27"/>
+            <line x1="133" y1="133" x2="137" y2="137"/>
+            <line x1="133" y1="27" x2="137" y2="23"/>
+            <line x1="23" y1="137" x2="27" y2="133"/>
+          </g>
+        </svg>
+      </div>
+      <img src="images/avatar.jpg" alt="Avatar" class="avatar">
+    </div>
+
+    <!-- Identidad -->
+    <div class="identity">
+      <h1 class="nickname">ITA</h1>
+      <p class="bio">
+        Believer in <strong>Gojo</strong> supremacy · Messi · Football
+      </p>
+    </div>
+
+    <!-- Socials -->
+    <div class="socials">
+      <a class="social" href="https://instagram.com/s.t.x.a" target="_blank" rel="noopener" data-name="INSTAGRAM">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="18" cy="6" r="1" fill="currentColor"/>
+        </svg>
+      </a>
+      <a class="social" href="https://www.tiktok.com/@akm_ita" target="_blank" rel="noopener" data-name="TIKTOK">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.66a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.09z"/>
+        </svg>
+      </a>
+      <a class="social" href="#" onclick="copyToClipboard('akm_ita', this); return false;" data-name="DISCORD · akm_ita">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.6 12.6 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+        </svg>
+      </a>
+      <a class="social" href="https://open.spotify.com/user/31m4yoh7mkxra2ey5ubeyblwrktq" target="_blank" rel="noopener" data-name="SPOTIFY">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12C24 5.4 18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"/>
+        </svg>
+      </a>
+      <a class="social" href="https://www.roblox.com/es/users/2257225944/profile" target="_blank" rel="noopener" data-name="ROBLOX · SKYLX">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3.038 0L0 20.962 20.962 24 24 3.038zM14.069 16.378l-6.45-1.71 1.713-6.446 6.45 1.71-1.713 6.446zm-3.967-7.243a1.706 1.706 0 0 0-2.084 1.205 1.706 1.706 0 0 0 1.205 2.085 1.706 1.706 0 0 0 2.084-1.205 1.706 1.706 0 0 0-1.205-2.085z"/>
+        </svg>
+      </a>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider">
+      <div class="line"></div>
+      <span class="ornament">✦</span>
+      <div class="line"></div>
+    </div>
+
+    <!-- Reproductor -->
+    <div class="player">
+      <div class="now-playing">
+        <div class="now-cover spinning" id="nowCover">
+          <img src="images/covers/01.svg" alt="" id="nowCoverImg">
+        </div>
+        <div class="now-info">
+          <div class="now-title" id="nowTitle">Adore You</div>
+          <div class="now-artist" id="nowArtist">Bryant Barnes</div>
+        </div>
+      </div>
+
+      <div class="progress-row">
+        <span class="time" id="timeCurrent">0:00</span>
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="time right" id="timeTotal">0:00</span>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" id="btnPrev" title="Anterior">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button class="ctrl play" id="btnPlay" title="Reproducir">
+          <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="iconPause" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+        </button>
+        <button class="ctrl" id="btnNext" title="Siguiente">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+        </button>
+
+        <div class="volume-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px;color:var(--gold)">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+          </svg>
+          <input type="range" class="vol" id="volume" min="0" max="1" step="0.01" value="0.7">
+        </div>
+      </div>
+    </div>
+
+    <!-- Playlist -->
+    <div class="playlist-section">
+      <div class="playlist-header">
+        <span class="playlist-title">✦ Playlist</span>
+        <button class="shuffle-btn" id="btnShuffle">⤬ Shuffle</button>
+      </div>
+      <ul class="playlist" id="playlist"></ul>
+    </div>
+
+    <!-- Quote final (Lelouch a Nunnally) -->
+    <div class="quote-section">
+      <p class="quote">
+        <span class="accent">"</span>I will create a world<br>
+        where my sister can live<br>
+        happily in peace.<span class="accent">"</span>
+        <span class="quote-attrib">— Lelouch vi Britannia</span>
+      </p>
+    </div>
+
+    <!-- Link cruzado a la card de mi niña -->
+    <a class="cross-link" href="./mi_nina/" title="Mi Niña 🌹">
+      <div class="cross-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </div>
+      <div class="cross-text">
+        <span class="cross-label">Para mi niña</span>
+        <span class="cross-name">Mi Niña 🌹</span>
+      </div>
+      <svg class="cross-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M13 5l7 7-7 7"/>
+      </svg>
+    </a>
+
+  </div>
+
+  <div class="footer">
+    Crafted with <span class="heart">♥</span> · 2026
+  </div>
+
+</div>
+
+<!-- Audio invisible -->
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+// =====================================================================
+// PLAYLIST
+// =====================================================================
+const tracks = [
+  { src: 'audio/01.mp3', cover: 'images/covers/01.svg', title: 'Adore You',          artist: 'Bryant Barnes' },
+  { src: 'audio/02.mp3', cover: 'images/covers/02.svg', title: "I'd Rather Pretend", artist: 'Bryant Barnes' },
+  { src: 'audio/03.mp3', cover: 'images/covers/03.svg', title: 'Hope',               artist: 'XXXTENTACION' },
+  { src: 'audio/04.mp3', cover: 'images/covers/04.svg', title: 'Cuando Me Vaya',     artist: 'Mora' },
+  { src: 'audio/05.mp3', cover: 'images/covers/05.svg', title: 'Detrás de tu Alma',  artist: 'Mora' },
+  { src: 'audio/06.mp3', cover: 'images/covers/06.svg', title: 'Tuyo',               artist: 'Mora' },
+  { src: 'audio/07.mp3', cover: 'images/covers/07.svg', title: 'Volando',            artist: 'Mora' },
+  { src: 'audio/08.mp3', cover: 'images/covers/08.svg', title: 'Aquel Nap, ZzZz',    artist: 'Rauw Alejandro' },
+  { src: 'audio/09.mp3', cover: 'images/covers/09.svg', title: 'Tú con Él',          artist: 'Rauw Alejandro' },
+  { src: 'audio/10.mp3', cover: 'images/covers/10.svg', title: 'Volver',             artist: 'Tainy, Rauw, Skrillex, Four Tet' },
+];
+
+// =====================================================================
+// REPRODUCTOR
+// =====================================================================
+const audio = document.getElementById('audio');
+const playlistEl = document.getElementById('playlist');
+const nowCover = document.getElementById('nowCover');
+const nowCoverImg = document.getElementById('nowCoverImg');
+const nowTitle = document.getElementById('nowTitle');
+const nowArtist = document.getElementById('nowArtist');
+const timeCurrent = document.getElementById('timeCurrent');
+const timeTotal = document.getElementById('timeTotal');
+const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
+const btnPlay = document.getElementById('btnPlay');
+const btnPrev = document.getElementById('btnPrev');
+const btnNext = document.getElementById('btnNext');
+const btnShuffle = document.getElementById('btnShuffle');
+const iconPlay = document.getElementById('iconPlay');
+const iconPause = document.getElementById('iconPause');
+const volumeSlider = document.getElementById('volume');
+
+let currentIndex = 0;
+let isPlaying = false;
+let shuffleMode = false;
+
+// Render playlist
+function renderPlaylist() {
+  playlistEl.innerHTML = tracks.map((t, i) => `
+    <li class="track ${i === currentIndex ? 'active' : ''}" data-index="${i}">
+      <div class="track-cover"><img src="${t.cover}" alt=""></div>
+      <div class="track-info">
+        <div class="track-name">${t.title}</div>
+        <div class="track-artist">${t.artist}</div>
+      </div>
+      <div class="eq-bars"><span></span><span></span><span></span></div>
+      <span class="track-duration" data-i="${i}">--:--</span>
+    </li>
+  `).join('');
+
+  playlistEl.querySelectorAll('.track').forEach(el => {
+    el.addEventListener('click', () => {
+      const i = parseInt(el.dataset.index);
+      loadTrack(i);
+      play();
+    });
+  });
+}
+
+function formatTime(s) {
+  if (!isFinite(s) || s < 0) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function loadTrack(i) {
+  currentIndex = i;
+  const t = tracks[i];
+  audio.src = t.src;
+  nowTitle.textContent = t.title;
+  nowArtist.textContent = t.artist;
+  nowCoverImg.src = t.cover;
+
+  // Update active in playlist
+  playlistEl.querySelectorAll('.track').forEach((el, idx) => {
+    el.classList.toggle('active', idx === i);
+    el.classList.toggle('playing', idx === i && isPlaying);
+  });
+}
+
+function play() {
+  audio.play().then(() => {
+    isPlaying = true;
+    iconPlay.style.display = 'none';
+    iconPause.style.display = 'block';
+    nowCover.classList.add('spinning');
+    const active = playlistEl.querySelector('.track.active');
+    if (active) active.classList.add('playing');
+  }).catch(e => console.warn('Play blocked:', e));
+}
+
+function pause() {
+  audio.pause();
+  isPlaying = false;
+  iconPlay.style.display = 'block';
+  iconPause.style.display = 'none';
+  nowCover.classList.remove('spinning');
+  const active = playlistEl.querySelector('.track.active');
+  if (active) active.classList.remove('playing');
+}
+
+function togglePlay() {
+  if (isPlaying) pause(); else play();
+}
+
+function next() {
+  let i;
+  if (shuffleMode) {
+    do { i = Math.floor(Math.random() * tracks.length); } while (i === currentIndex && tracks.length > 1);
+  } else {
+    i = (currentIndex + 1) % tracks.length;
+  }
+  loadTrack(i);
+  play();
+}
+
+function prev() {
+  // Si lleva más de 3s reproducidos, vuelve al inicio de la actual
+  if (audio.currentTime > 3) {
+    audio.currentTime = 0;
+    return;
+  }
+  const i = (currentIndex - 1 + tracks.length) % tracks.length;
+  loadTrack(i);
+  play();
+}
+
+// Event listeners
+btnPlay.addEventListener('click', togglePlay);
+btnNext.addEventListener('click', next);
+btnPrev.addEventListener('click', prev);
+btnShuffle.addEventListener('click', () => {
+  shuffleMode = !shuffleMode;
+  btnShuffle.classList.toggle('active', shuffleMode);
+});
+
+// Progress
+audio.addEventListener('timeupdate', () => {
+  if (!isFinite(audio.duration)) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  progressFill.style.width = pct + '%';
+  timeCurrent.textContent = formatTime(audio.currentTime);
+});
+
+audio.addEventListener('loadedmetadata', () => {
+  timeTotal.textContent = formatTime(audio.duration);
+});
+
+audio.addEventListener('ended', next);
+
+// Click en barra
+progressBar.addEventListener('click', e => {
+  if (!isFinite(audio.duration)) return;
+  const rect = progressBar.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const pct = x / rect.width;
+  audio.currentTime = pct * audio.duration;
+});
+
+// Volumen
+volumeSlider.addEventListener('input', e => audio.volume = parseFloat(e.target.value));
+audio.volume = parseFloat(volumeSlider.value);
+
+// Pre-cargar durations de cada track para el listado
+async function loadDurations() {
+  for (let i = 0; i < tracks.length; i++) {
+    await new Promise(res => {
+      const a = new Audio();
+      a.preload = 'metadata';
+      a.src = tracks[i].src;
+      a.addEventListener('loadedmetadata', () => {
+        const el = playlistEl.querySelector(`.track-duration[data-i="${i}"]`);
+        if (el) el.textContent = formatTime(a.duration);
+        res();
+      }, { once: true });
+      a.addEventListener('error', () => res(), { once: true });
+    });
+  }
+}
+
+// =====================================================================
+// VIEW COUNTER (persiste en localStorage)
+// =====================================================================
+const KEY = 'ita-card-views';
+let views = parseInt(localStorage.getItem(KEY) || '0', 10);
+views++;
+localStorage.setItem(KEY, views);
+document.getElementById('viewCount').textContent = views.toLocaleString();
+
+// =====================================================================
+// COPY TO CLIPBOARD (Discord)
+// =====================================================================
+function copyToClipboard(text, el) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = el.getAttribute('data-name');
+    el.setAttribute('data-name', '✓ COPIADO');
+    setTimeout(() => el.setAttribute('data-name', orig), 1500);
+  }).catch(() => {});
+}
+window.copyToClipboard = copyToClipboard;
+
+// =====================================================================
+// PARTÍCULAS DE PLUMAS
+// =====================================================================
+function spawnFeather() {
+  const f = document.createElement('div');
+  f.className = 'feather';
+  const startX = Math.random() * 100;
+  const drift = (Math.random() - 0.5) * 200;
+  const duration = 8 + Math.random() * 10;
+  const delay = Math.random() * 2;
+  f.style.left = startX + 'vw';
+  f.style.setProperty('--drift', drift + 'px');
+  f.style.animationDuration = duration + 's';
+  f.style.animationDelay = delay + 's';
+  f.style.opacity = '0.5';
+  document.getElementById('feathers').appendChild(f);
+  setTimeout(() => f.remove(), (duration + delay + 1) * 1000);
+}
+
+// Inicial: 12 plumas distribuidas
+for (let i = 0; i < 12; i++) {
+  setTimeout(spawnFeather, i * 800);
+}
+// Loop continuo: una pluma cada 1.5s
+setInterval(spawnFeather, 1500);
+
+// =====================================================================
+// INICIALIZACIÓN
+// =====================================================================
+renderPlaylist();
+loadTrack(0);
+loadDurations();
+</script>
+
+</body>
+</html>
