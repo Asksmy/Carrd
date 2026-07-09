@@ -1163,11 +1163,29 @@ async function loadDurations() {
 // =====================================================================
 // VIEW COUNTER
 // =====================================================================
-const KEY = 'coquito-card-views';
-let views = parseInt(localStorage.getItem(KEY) || '0', 10);
-views++;
-localStorage.setItem(KEY, views);
-document.getElementById('viewCount').textContent = views.toLocaleString();
+async function updateViewCounter() {
+  const viewCountEl = document.getElementById('viewCount');
+  if (!viewCountEl) return;
+
+  try {
+    const response = await fetch('https://api.counterapi.dev/v1/asksmy-carrd/mi-nina/up', {
+      cache: 'no-store'
+    });
+
+    if (!response.ok) throw new Error('Counter request failed');
+
+    const data = await response.json();
+    const views = Number(data.count);
+
+    if (!Number.isFinite(views)) throw new Error('Invalid counter response');
+
+    viewCountEl.textContent = views.toLocaleString();
+  } catch (error) {
+    console.warn('Could not update global view counter:', error);
+  }
+}
+
+updateViewCounter();
 
 // =====================================================================
 // COPY TO CLIPBOARD
