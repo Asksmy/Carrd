@@ -611,7 +611,7 @@ input[type="range"].vol::-moz-range-thumb {
 .eq-bars span {
   width: 3px;
   background: var(--gold-bright);
-  border-radius: 1px;https://carrd-counter.itaisalegend.workers.dev/
+  border-radius: 1px;
   animation: eq 0.9s ease-in-out infinite;
 }
 
@@ -1157,7 +1157,7 @@ async function updateViewCounter() {
   if (!viewCountEl) return;
 
   try {
-    https://carrd-counter.itaisalegend.workers.dev/
+    const response = await fetch('https://carrd-counter.itaisalegend.workers.dev/', {
       cache: 'no-store'
     });
 
